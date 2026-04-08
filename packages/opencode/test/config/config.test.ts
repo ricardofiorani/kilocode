@@ -123,6 +123,52 @@ test("ignores legacy tui keys in opencode config", async () => {
   })
 })
 
+test("normalizes top-level provider baseURL into provider options", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await writeConfig(dir, {
+        $schema: "https://app.kilo.ai/config.json",
+        provider: {
+          lmstudio: {
+            baseURL: "http://localhost:1234/v1",
+          },
+        },
+      })
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const config = await Config.get()
+      expect(config.provider?.lmstudio?.options?.baseURL).toBe("http://localhost:1234/v1")
+      expect((config.provider?.lmstudio as Record<string, unknown>).baseURL).toBeUndefined()
+    },
+  })
+})
+
+test("normalizes top-level provider baseUrl into provider options", async () => {
+  await using tmp = await tmpdir({
+    init: async (dir) => {
+      await writeConfig(dir, {
+        $schema: "https://app.kilo.ai/config.json",
+        provider: {
+          lmstudio: {
+            baseUrl: "http://localhost:1234/v1",
+          },
+        },
+      })
+    },
+  })
+  await Instance.provide({
+    directory: tmp.path,
+    fn: async () => {
+      const config = await Config.get()
+      expect(config.provider?.lmstudio?.options?.baseURL).toBe("http://localhost:1234/v1")
+      expect((config.provider?.lmstudio as Record<string, unknown>).baseUrl).toBeUndefined()
+    },
+  })
+})
+
 test("loads JSONC config file", async () => {
   await using tmp = await tmpdir({
     init: async (dir) => {

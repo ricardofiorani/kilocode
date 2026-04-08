@@ -1593,6 +1593,30 @@ export namespace Config {
     const normalized = (() => {
       if (!data || typeof data !== "object" || Array.isArray(data)) return data
       const copy = { ...(data as Record<string, unknown>) }
+
+      if (isRecord(copy.provider)) {
+        for (const providerConfig of Object.values(copy.provider)) {
+          if (!isRecord(providerConfig)) continue
+
+          const rootBaseURL =
+            typeof providerConfig.baseURL === "string"
+              ? providerConfig.baseURL
+              : typeof providerConfig.baseUrl === "string"
+              ? providerConfig.baseUrl
+              : undefined
+
+          if (rootBaseURL) {
+            const options = isRecord(providerConfig.options) ? { ...providerConfig.options } : {}
+            if (options.baseURL === undefined) {
+              options.baseURL = rootBaseURL
+            }
+            providerConfig.options = options
+            delete providerConfig.baseURL
+            delete providerConfig.baseUrl
+          }
+        }
+      }
+
       const hadLegacy = "theme" in copy || "keybinds" in copy || "tui" in copy
       if (!hadLegacy) return copy
       delete copy.theme
